@@ -212,6 +212,12 @@ body.is-locked .side .nav,body.is-locked .side .save{visibility:hidden}
 .anx-list .acts{display:flex;gap:4px;margin-left:auto}
 .anx-add{display:flex;flex-wrap:wrap;gap:6px}
 .anx-add .btn{cursor:pointer}
+.anx-prev{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;height:min(560px,70vh);color:var(--ink);font-weight:400}
+.anx-tabs{display:flex;gap:6px;align-items:center;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:var(--surface)}
+.anx-tab{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:600;color:var(--muted)}
+.anx-tab svg{width:13px;height:13px}
+.anx-tab[aria-pressed="true"]{background:var(--brand-soft);color:var(--brand-2);border-color:var(--brand)}
+.cli-sub{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:3px}
 .anx-chips{display:inline-flex;flex-wrap:wrap;gap:4px;vertical-align:middle}
 .anx-chip{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:6px;font-size:11.5px;font-weight:600;padding:2px 7px}
 .anx-chip:hover{border-color:var(--brand);color:var(--brand-2)}
@@ -349,7 +355,7 @@ body.discreto .money{filter:blur(7px);user-select:none}
     <div class="side-foot">
       <div class="save" id="save"><i></i><span>Carregando…</span></div>
       <button class="linkbtn" id="themeBtn" type="button">Tema escuro</button>
-      <span class="ver" title="Versão do app">versão 3 · ver anexos no app</span>
+      <span class="ver" title="Versão do app">versão 3.2 · anexos visíveis na nota</span>
     </div>
   </aside>
   <main id="main"></main>
@@ -738,12 +744,12 @@ function vFat(){
   </section>`;
   if (!fats().length) return top("Faturamento", "Tabela de faturamento de manutenção e fabricação", acts, true) + vazioHTML();
   const linhas = lista.map(f => { const ps = f.parcelas || []; const env = ps.length && ps.every(p => p.enviado);
-    return `<tr class="click" tabindex="0" data-fat="${f.id}"><td><b>${esc(cliName(f.clienteId))}</b><div><span class="tag ${f.tipo==="fabricacao"?"fab":""}">${TIPOS[f.tipo]}</span></div></td><td class="num">${esc(f.orc||"—")}</td><td class="r">${m$(f.valor)}</td><td class="num">${fmtDc(f.emissao)}</td>
+    return `<tr class="click" tabindex="0" data-fat="${f.id}"><td><b>${esc(cliName(f.clienteId))}</b><div class="cli-sub"><span class="tag ${f.tipo==="fabricacao"?"fab":""}">${TIPOS[f.tipo]}</span>${(f.anexos||[]).length ? anxChips(f) : ""}</div></td><td class="num">${esc(f.orc||"—")}</td><td class="r">${m$(f.valor)}</td><td class="num">${fmtDc(f.emissao)}</td>
     <td class="num small">${ps.map(p => fmtDc(p.venc)).join("<br>") || "—"}</td><td class="num" style="text-align:center">${ps.length}</td><td class="num small">${esc(f.nf||"—")}</td><td class="num small">${ps.map(p => esc(p.boleto||"—")).join("<br>")}</td>
-    <td style="text-align:center"><button type="button" class="tick ${env?"on":""}" data-env="${f.id}" aria-label="Boletos enviados" aria-pressed="${!!env}">${I.check}</button></td><td>${anxChips(f)}</td><td>${chip(stFat(f))}</td></tr>`; }).join("");
+    <td style="text-align:center"><button type="button" class="tick ${env?"on":""}" data-env="${f.id}" aria-label="Boletos enviados" aria-pressed="${!!env}">${I.check}</button></td><td>${chip(stFat(f))}</td></tr>`; }).join("");
   return top("Faturamento", "Notas de manutenção e fabricação", acts, true) + filtros +
-    (lista.length ? `<div class="tablewrap"><table class="sheet"><thead><tr><th>Cliente</th><th>Nº orç.</th><th class="r">Valor</th><th>Emissão</th><th>Vencimento</th><th>Parc.</th><th>Nº NF</th><th>Nº boleto</th><th>Enviado</th><th>Anexos</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody>
-    <tfoot><tr><td colspan="2">${lista.length} ${lista.length === 1 ? "nota" : "notas"}</td><td class="r">${m$(tot)}</td><td colspan="8"></td></tr></tfoot></table></div>`
+    (lista.length ? `<div class="tablewrap"><table class="sheet"><thead><tr><th>Cliente</th><th>Nº orç.</th><th class="r">Valor</th><th>Emissão</th><th>Vencimento</th><th>Parc.</th><th>Nº NF</th><th>Nº boleto</th><th>Enviado</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody>
+    <tfoot><tr><td colspan="2">${lista.length} ${lista.length === 1 ? "nota" : "notas"}</td><td class="r">${m$(tot)}</td><td colspan="7"></td></tr></tfoot></table></div>`
     : `<div class="panel empty"><h3>Nenhuma nota com esses filtros</h3><p>Troque o mês, o tipo ou a busca.</p><div class="actions"><button class="btn" data-act="limpar">Limpar filtros</button></div></div>`);
 }
 
@@ -891,7 +897,7 @@ function fatForm(f){
     <label class="f">Intervalo entre parcelas (dias)<input name="iv" type="number" min="1" max="365" value="${interv}"></label>
     <div class="f"><span>&nbsp;</span><button type="button" class="btn" data-act="regerar">Recalcular parcelas</button></div>
     <div class="parc" id="parc"></div>
-    <div class="f full"><span>Anexos (nota fiscal, boleto, nota de serviço)</span><div class="anx" id="anx"></div></div>
+    <div class="f full"><span>Anexos (nota fiscal, boleto, nota de serviço)</span><div class="anx" id="anx"></div><div class="anx-prev" id="anxPrev" hidden></div></div>
     <label class="f full">Observações<textarea name="obs">${esc(f.obs)}</textarea></label>`,
     novo ? "Salvar nota" : "Salvar alterações", novo ? "" : `<button type="button" class="btn danger" data-act="del-fat">Excluir</button>`));
   const frm = $("#frm"), F = n => frm.elements[n];
@@ -911,13 +917,29 @@ function fatForm(f){
   let anx = (f.anexos || []).slice();
   const podeAnx = mode === "app" && !demo && !!TOK;
   const salvarAnx = () => { const atual = D().fats[f.id]; if (atual) persist("fat", Object.assign(JSON.parse(JSON.stringify(atual)), {anexos: anx})); };
-  const pintarAnx = (status) => {
+  let pintarAnx = (status) => {
     $("#anx").innerHTML = (anx.length ? `<ul class="anx-list">${anx.map(a => `<li><span class="tag">${ANX_CURTO[a.tipo]}</span><span class="nm" title="${esc(a.nome)}">${esc(a.nome)}</span><span class="muted small">${a.tam ? tamTxt(a.tam) : ""}</span><span class="acts"><button type="button" class="btn small" data-ax="abrir" data-id="${a.id}">Ver</button><button type="button" class="btn small ghost" data-ax="baixar" data-id="${a.id}">Baixar</button><button type="button" class="btn small ghost danger" data-ax="del" data-id="${a.id}" aria-label="Remover ${esc(a.nome)}">Remover</button></span></li>`).join("")}</ul>` : `<p class="muted small" style="margin:0">Nenhum arquivo anexado.</p>`)
       + (podeAnx ? `<div class="anx-add">${Object.entries(ANX).map(([k, l]) => `<label class="btn small">${I.clip}${l}<input type="file" data-anxtipo="${k}" accept="application/pdf,image/*,.xml,text/xml" hidden></label>`).join("")}</div>
         <p class="muted small anx-st" style="margin:6px 0 0">${status ? esc(status) : "PDF, foto ou XML, até 10 MB. Ficam guardados no seu Google Drive, na pasta “Maartec Financeiro — anexos”."}</p>`
       : `<p class="muted small" style="margin:6px 0 0">${demo ? "Anexos não funcionam no modo de exemplo." : "Para anexar arquivos, conecte o app à planilha (servidor com PIN)."}</p>`);
   };
+  let prevId = null;
+  const pintarPrev = () => {
+    const box = $("#anxPrev"); if (!box) return;
+    if (!anx.length || !podeAnx){ box.innerHTML = ""; box.hidden = true; return; }
+    if (!anx.find(x => x.id === prevId)) prevId = anx[0].id;
+    const atual = anx.find(x => x.id === prevId);
+    box.hidden = false;
+    box.innerHTML = `<div class="anx-tabs">${anx.map(x => `<button type="button" class="anx-tab" data-prev="${x.id}" aria-pressed="${x.id === prevId}">${I.clip}${ANX_CURTO[x.tipo]}</button>`).join("")}<button type="button" class="btn small ghost" data-prevfull style="margin-left:auto">Tela cheia</button></div><div class="anx-prev-body vw-body"></div>`;
+    renderAnexo(box.querySelector(".anx-prev-body"), atual, () => $("#dlg").open && prevId === atual.id && !!$("#anxPrev"));
+  };
+  const pintarAnx0 = pintarAnx;
+  pintarAnx = (st) => { pintarAnx0(st); if (!st) pintarPrev(); };
   pintarAnx();
+  $("#anxPrev") && $("#anxPrev").addEventListener("click", e => {
+    const t = e.target.closest("[data-prev]"); if (t){ prevId = t.dataset.prev; pintarPrev(); return; }
+    if (e.target.closest("[data-prevfull]")){ const a = anx.find(x => x.id === prevId); if (a) verAnexo(a, {anexos: anx}); }
+  });
   $("#anx").addEventListener("change", async e => {
     const inp = e.target.closest("input[data-anxtipo]"); if (!inp || !inp.files[0]) return;
     const file = inp.files[0], tipo = inp.dataset.anxtipo; inp.value = "";
@@ -925,14 +947,14 @@ function fatForm(f){
     pintarAnx("Enviando " + file.name + "…"); $("#anx").classList.add("busy");
     try {
       const a = await enviarAnexo(file, tipo, Object.assign({}, f, {clienteId: ensureCliNome(F("cli").value), nf: F("nf").value.trim(), emissao: F("emissao").value}));
-      anx.push(a); salvarAnx(); pintarAnx(); toast(ANX[tipo] + " anexado");
+      anx.push(a); prevId = a.id; salvarAnx(); pintarAnx(); toast(ANX[tipo] + " anexado");
     } catch(err){ pintarAnx(); toast(err.message === "rede" ? "Sem conexão — o arquivo não foi enviado" : /drive|autoriz|permiss/i.test(err.message) ? "Rode a função autorizarAnexos no Apps Script (veja as instruções)" : "Não foi possível enviar: " + err.message); }
     finally { $("#anx").classList.remove("busy"); }
   });
   $("#anx").addEventListener("click", async e => {
     const b = e.target.closest("[data-ax]"); if (!b) return; e.preventDefault();
     const a = anx.find(x => x.id === b.dataset.id); if (!a) return;
-    if (b.dataset.ax === "abrir") verAnexo(a, {anexos: anx});
+    if (b.dataset.ax === "abrir"){ prevId = a.id; pintarPrev(); const bx = $("#anxPrev"); if (bx) bx.scrollIntoView({behavior:"smooth", block:"start"}); }
     else if (b.dataset.ax === "baixar") baixarAnexo(a);
     else if (await ask("Remover o anexo “" + a.nome + "”?", "Remover", false)){
       anx = anx.filter(x => x.id !== a.id); salvarAnx(); pintarAnx(); toast("Anexo removido");
@@ -1056,28 +1078,38 @@ async function verAnexo(a, f){
   const pintar = async (atual) => {
     d.innerHTML = `<div class="vw-head"><div class="vw-tit"><span class="tag">${ANX_CURTO[atual.tipo]}</span><b title="${esc(atual.nome)}">${esc(atual.nome)}</b></div>
       <div class="vw-acts">${lista.length > 1 ? `<select class="vw-sel" aria-label="Escolher anexo">${lista.map(x => `<option value="${x.id}" ${x.id === atual.id ? "selected" : ""}>${ANX_CURTO[x.tipo]} · ${esc(x.nome)}</option>`).join("")}</select>` : ""}
-      <button type="button" class="btn small" data-vw="baixar">${I.dl}Baixar</button><button type="button" class="btn small ghost" data-vw="drive">Abrir no Drive</button><button type="button" class="x" data-vw="fechar" aria-label="Fechar">×</button></div></div>
+      <button type="button" class="btn small" data-vw="baixar">${I.dl}Baixar</button><button type="button" class="btn small ghost" data-vw="prev">Ver pelo Drive</button><button type="button" class="btn small ghost" data-vw="drive">Abrir no Drive</button><button type="button" class="x" data-vw="fechar" aria-label="Fechar">×</button></div></div>
       <div class="vw-body"><div class="vw-load">Carregando ${esc(atual.nome)}…</div></div>`;
     d.querySelector('[data-vw="fechar"]').onclick = () => d.close();
     d.querySelector('[data-vw="drive"]').onclick = () => abrirAnexo(atual);
+    d.querySelector('[data-vw="prev"]').onclick = () => verPeloDrive(d.querySelector(".vw-body"), atual, "");
     d.querySelector('[data-vw="baixar"]').onclick = () => baixarAnexo(atual);
     const sel = d.querySelector(".vw-sel"); if (sel) sel.onchange = () => pintar(lista.find(x => x.id === sel.value));
     const body = d.querySelector(".vw-body"); d.dataset.atual = atual.id;
-    try {
-      const c = await buscarAnexo(atual); if (!d.open) return;
-      const t = tipoVer(c.mime, c.nome);
-      if (t === "pdf"){
-        body.innerHTML = `<div class="vw-pdf"><div class="vw-load">Abrindo PDF…</div></div>`;
-        try { await mostrarPdf(c, body.querySelector(".vw-pdf"), () => d.open && d.dataset.atual === atual.id); }
-        catch(e){ body.innerHTML = `<iframe class="vw-frame" src="${c.url}#view=FitH" title="${esc(c.nome)}"></iframe><p class="vw-hint">Se o PDF não aparecer neste aparelho, use <b>Baixar</b> ou <b>Abrir no Drive</b>.</p>`; }
-      }
-      else if (t === "img") body.innerHTML = `<div class="vw-img"><img src="${c.url}" alt="${esc(c.nome)}"></div>`;
-      else if (t === "txt") body.innerHTML = `<pre class="vw-txt">${esc(await c.blob.text())}</pre>`;
-      else body.innerHTML = `<div class="vw-load">Esse tipo de arquivo não tem pré-visualização. Use <b>Baixar</b> ou <b>Abrir no Drive</b>.</div>`;
-    } catch(err){ body.innerHTML = `<div class="vw-load">Não foi possível carregar o arquivo${err.message === "rede" ? " — sem conexão" : ""}. Tente <b>Abrir no Drive</b>.</div>`; }
+    await renderAnexo(body, atual, () => d.open && d.dataset.atual === atual.id);
   };
   if (!d.open) d.showModal();
   pintar(a);
+}
+async function renderAnexo(body, atual, ativo){
+  body.innerHTML = `<div class="vw-load">Carregando ${esc(atual.nome)}…</div>`;
+  try {
+    const c = await buscarAnexo(atual); if (!ativo()) return;
+    const t = tipoVer(c.mime, c.nome);
+    if (t === "pdf"){
+      body.innerHTML = `<div class="vw-pdf"><div class="vw-load">Abrindo PDF…</div></div>`;
+      try { await mostrarPdf(c, body.querySelector(".vw-pdf"), ativo); }
+      catch(e){ if (ativo()) body.innerHTML = `<iframe class="vw-frame" src="${c.url}#view=FitH" title="${esc(c.nome)}"></iframe>`; }
+    }
+    else if (t === "img") body.innerHTML = `<div class="vw-img"><img src="${c.url}" alt="${esc(c.nome)}"></div>`;
+    else if (t === "txt") body.innerHTML = `<pre class="vw-txt">${esc(await c.blob.text())}</pre>`;
+    else body.innerHTML = `<div class="vw-load">Esse tipo de arquivo não tem pré-visualização. Use <b>Baixar</b>.</div>`;
+  } catch(err){ console.warn("anexo", err); if (ativo()) verPeloDrive(body, atual, "Não consegui carregar pelo servidor (" + (err && err.message || "erro") + "). Mostrando pela visualização do Google Drive:"); }
+}
+function verPeloDrive(body, a, msg){
+  body.innerHTML = (msg ? `<p class="vw-hint" style="border-top:0;border-bottom:1px solid var(--line)">${esc(msg)}</p>` : "")
+    + `<iframe class="vw-frame" src="https://drive.google.com/file/d/${encodeURIComponent(a.id)}/preview" title="${esc(a.nome)}" allow="autoplay"></iframe>`
+    + `<p class="vw-hint">Para essa visualização, este navegador precisa estar logado na mesma conta Google da planilha. Se pedir acesso, use <b>Abrir no Drive</b>.</p>`;
 }
 function abrirAnexo(a){ window.open(driveUrl(a.id), "_blank", "noopener"); }
 async function baixarAnexo(a){
