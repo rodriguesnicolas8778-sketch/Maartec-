@@ -217,6 +217,24 @@ body.is-locked .side .nav,body.is-locked .side .save{visibility:hidden}
 .anx-chip:hover{border-color:var(--brand);color:var(--brand-2)}
 .anx-chip svg{width:12px;height:12px}
 
+/* visualizador de anexos */
+dialog.viewer{width:min(1100px,calc(100vw - 16px));height:calc(100vh - 24px);max-height:none;display:flex;flex-direction:column}
+dialog.viewer:not([open]){display:none}
+.vw-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px 10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.vw-tit{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 200px}
+.vw-tit b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14.5px}
+.vw-acts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.vw-sel{height:32px;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:0 8px;max-width:220px}
+.vw-body{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--paper)}
+.vw-pdf{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:12px;padding:12px}
+.vw-pdf canvas{background:#fff;box-shadow:var(--shadow);max-width:100%}
+.vw-frame{flex:1;width:100%;border:0;background:#fff}
+.vw-hint{margin:0;padding:6px 12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.vw-img{flex:1;overflow:auto;display:grid;place-items:center;padding:12px}
+.vw-img img{max-width:100%;height:auto;box-shadow:var(--shadow);background:#fff}
+.vw-txt{flex:1;margin:0;overflow:auto;padding:16px;font-size:12.5px;white-space:pre-wrap;word-break:break-word}
+.vw-load{margin:auto;padding:24px;text-align:center;color:var(--muted)}
+
 /* dialog */
 dialog{border:0;border-radius:18px;padding:0;overflow:hidden;background:var(--surface);color:var(--ink);width:min(680px,calc(100vw - 24px));max-height:calc(100vh - 32px);box-shadow:0 30px 80px -20px rgba(0,0,0,.45)}
 dialog::backdrop{background:rgba(20,22,24,.45);backdrop-filter:blur(2px)}
@@ -331,7 +349,7 @@ body.discreto .money{filter:blur(7px);user-select:none}
     <div class="side-foot">
       <div class="save" id="save"><i></i><span>Carregando…</span></div>
       <button class="linkbtn" id="themeBtn" type="button">Tema escuro</button>
-      <span class="ver" title="Versão do app">versão 2 · com anexos</span>
+      <span class="ver" title="Versão do app">versão 3 · ver anexos no app</span>
     </div>
   </aside>
   <main id="main"></main>
@@ -835,7 +853,7 @@ function vRelatorios(){
 /* ---------- Ajustes ---------- */
 function vAjustes(){
   const nL = Object.keys(LIXO).length;
-  return top("Ajustes", "Versão 2 do app · com anexos de NF, boleto e nota de serviço") + `<div class="grid g2">
+  return top("Ajustes", "Versão 3 do app · anexos de NF, boleto e nota de serviço, com visualização no próprio app") + `<div class="grid g2">
   <div class="panel"><h3>Onde os dados ficam</h3><p class="sub">${demo ? "Modo de exemplo — nada é salvo." : mode === "app" ? "Na sua Planilha Google, via servidor com PIN. Sincroniza entre celular e computador a cada 15 segundos." : "Só neste navegador. Baixe backups com frequência — se limpar os dados do navegador, eles somem."}</p>
     <div class="actions">${demo ? `<button class="btn" data-act="sair-demo">Sair do exemplo</button>` : `<button class="btn" data-act="sair">${mode === "app" ? "Sair deste aparelho" : "Trocar para a planilha"}</button>`}</div></div>
   <div class="panel"><h3>Backup</h3><p class="sub">${ultimoBackup ? "Último backup em " + fmtD(ultimoBackup.slice(0,10)) + "." : "Nenhum backup baixado ainda."} O arquivo .json guarda tudo e pode ser importado de volta.</p>
@@ -894,7 +912,7 @@ function fatForm(f){
   const podeAnx = mode === "app" && !demo && !!TOK;
   const salvarAnx = () => { const atual = D().fats[f.id]; if (atual) persist("fat", Object.assign(JSON.parse(JSON.stringify(atual)), {anexos: anx})); };
   const pintarAnx = (status) => {
-    $("#anx").innerHTML = (anx.length ? `<ul class="anx-list">${anx.map(a => `<li><span class="tag">${ANX_CURTO[a.tipo]}</span><span class="nm" title="${esc(a.nome)}">${esc(a.nome)}</span><span class="muted small">${a.tam ? tamTxt(a.tam) : ""}</span><span class="acts"><button type="button" class="btn small ghost" data-ax="abrir" data-id="${a.id}">Abrir</button><button type="button" class="btn small ghost" data-ax="baixar" data-id="${a.id}">Baixar</button><button type="button" class="btn small ghost danger" data-ax="del" data-id="${a.id}" aria-label="Remover ${esc(a.nome)}">Remover</button></span></li>`).join("")}</ul>` : `<p class="muted small" style="margin:0">Nenhum arquivo anexado.</p>`)
+    $("#anx").innerHTML = (anx.length ? `<ul class="anx-list">${anx.map(a => `<li><span class="tag">${ANX_CURTO[a.tipo]}</span><span class="nm" title="${esc(a.nome)}">${esc(a.nome)}</span><span class="muted small">${a.tam ? tamTxt(a.tam) : ""}</span><span class="acts"><button type="button" class="btn small" data-ax="abrir" data-id="${a.id}">Ver</button><button type="button" class="btn small ghost" data-ax="baixar" data-id="${a.id}">Baixar</button><button type="button" class="btn small ghost danger" data-ax="del" data-id="${a.id}" aria-label="Remover ${esc(a.nome)}">Remover</button></span></li>`).join("")}</ul>` : `<p class="muted small" style="margin:0">Nenhum arquivo anexado.</p>`)
       + (podeAnx ? `<div class="anx-add">${Object.entries(ANX).map(([k, l]) => `<label class="btn small">${I.clip}${l}<input type="file" data-anxtipo="${k}" accept="application/pdf,image/*,.xml,text/xml" hidden></label>`).join("")}</div>
         <p class="muted small anx-st" style="margin:6px 0 0">${status ? esc(status) : "PDF, foto ou XML, até 10 MB. Ficam guardados no seu Google Drive, na pasta “Maartec Financeiro — anexos”."}</p>`
       : `<p class="muted small" style="margin:6px 0 0">${demo ? "Anexos não funcionam no modo de exemplo." : "Para anexar arquivos, conecte o app à planilha (servidor com PIN)."}</p>`);
@@ -914,7 +932,7 @@ function fatForm(f){
   $("#anx").addEventListener("click", async e => {
     const b = e.target.closest("[data-ax]"); if (!b) return; e.preventDefault();
     const a = anx.find(x => x.id === b.dataset.id); if (!a) return;
-    if (b.dataset.ax === "abrir") abrirAnexo(a);
+    if (b.dataset.ax === "abrir") verAnexo(a, {anexos: anx});
     else if (b.dataset.ax === "baixar") baixarAnexo(a);
     else if (await ask("Remover o anexo “" + a.nome + "”?", "Remover", false)){
       anx = anx.filter(x => x.id !== a.id); salvarAnx(); pintarAnx(); toast("Anexo removido");
@@ -988,17 +1006,90 @@ async function enviarAnexo(file, tipo, f){
   try { const r = await api("anexar", TOK, meta, b64); return {id: r.id, tipo, nome: r.nome || file.name, mime: meta.mime, tam: file.size, em: new Date().toISOString()}; }
   finally { pend--; }
 }
+/* visualizador dentro do app */
+const anxCache = {};
+async function buscarAnexo(a){
+  if (anxCache[a.id]) return anxCache[a.id];
+  const r = await api("baixarAnexo", TOK, a.id);
+  const bin = atob(r.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const mime = r.mime || a.mime || "application/octet-stream";
+  const blob = new Blob([u], {type: mime});
+  return (anxCache[a.id] = {blob, url: URL.createObjectURL(blob), mime, nome: r.nome || a.nome});
+}
+let pdfLib = null;
+function carregarPdfJs(){
+  if (pdfLib) return pdfLib;
+  const base = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+  return (pdfLib = new Promise((res, rej) => {
+    const sc = document.createElement("script"); sc.src = base + "pdf.min.js";
+    sc.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js"; res(window.pdfjsLib); } catch(e){ rej(e); } };
+    sc.onerror = () => { pdfLib = null; rej(new Error("pdfjs")); };
+    document.head.appendChild(sc);
+  }));
+}
+async function mostrarPdf(c, alvo, aindaAberto){
+  const lib = await carregarPdfJs();
+  const doc = await lib.getDocument({data: new Uint8Array(await c.blob.arrayBuffer())}).promise;
+  alvo.innerHTML = "";
+  const larg = Math.min(alvo.clientWidth - 24, 900), dpr = Math.min(2, window.devicePixelRatio || 1);
+  for (let n = 1; n <= Math.min(doc.numPages, 30); n++){
+    if (!aindaAberto()) return;
+    const pg = await doc.getPage(n), v0 = pg.getViewport({scale: 1}), esc_ = larg / v0.width, v = pg.getViewport({scale: esc_ * dpr});
+    const cv = document.createElement("canvas"); cv.width = v.width; cv.height = v.height; cv.style.width = (v.width / dpr) + "px"; cv.style.height = (v.height / dpr) + "px";
+    alvo.appendChild(cv);
+    await pg.render({canvasContext: cv.getContext("2d"), viewport: v}).promise;
+  }
+  if (doc.numPages > 30) alvo.insertAdjacentHTML("beforeend", `<p class="vw-hint">Mostrando 30 de ${doc.numPages} páginas — baixe para ver todas.</p>`);
+}
+function tipoVer(mime, nome){
+  const n = String(nome || "").toLowerCase();
+  if (/pdf/.test(mime) || n.endsWith(".pdf")) return "pdf";
+  if (/^image\//.test(mime) || /\.(png|jpe?g|webp|gif|heic)$/.test(n)) return "img";
+  if (/xml|text\//.test(mime) || /\.(xml|txt)$/.test(n)) return "txt";
+  return "outro";
+}
+async function verAnexo(a, f){
+  if (mode !== "app" || !TOK || demo){ toast(demo ? "Anexos não funcionam no modo de exemplo" : "Conecte o app à planilha para ver os anexos"); return; }
+  let d = $("#viewer");
+  if (!d){ d = document.createElement("dialog"); d.id = "viewer"; d.className = "viewer"; document.body.appendChild(d); d.addEventListener("click", e => { if (e.target === d) d.close(); }); }
+  const lista = f ? (f.anexos || []) : [a];
+  const pintar = async (atual) => {
+    d.innerHTML = `<div class="vw-head"><div class="vw-tit"><span class="tag">${ANX_CURTO[atual.tipo]}</span><b title="${esc(atual.nome)}">${esc(atual.nome)}</b></div>
+      <div class="vw-acts">${lista.length > 1 ? `<select class="vw-sel" aria-label="Escolher anexo">${lista.map(x => `<option value="${x.id}" ${x.id === atual.id ? "selected" : ""}>${ANX_CURTO[x.tipo]} · ${esc(x.nome)}</option>`).join("")}</select>` : ""}
+      <button type="button" class="btn small" data-vw="baixar">${I.dl}Baixar</button><button type="button" class="btn small ghost" data-vw="drive">Abrir no Drive</button><button type="button" class="x" data-vw="fechar" aria-label="Fechar">×</button></div></div>
+      <div class="vw-body"><div class="vw-load">Carregando ${esc(atual.nome)}…</div></div>`;
+    d.querySelector('[data-vw="fechar"]').onclick = () => d.close();
+    d.querySelector('[data-vw="drive"]').onclick = () => abrirAnexo(atual);
+    d.querySelector('[data-vw="baixar"]').onclick = () => baixarAnexo(atual);
+    const sel = d.querySelector(".vw-sel"); if (sel) sel.onchange = () => pintar(lista.find(x => x.id === sel.value));
+    const body = d.querySelector(".vw-body"); d.dataset.atual = atual.id;
+    try {
+      const c = await buscarAnexo(atual); if (!d.open) return;
+      const t = tipoVer(c.mime, c.nome);
+      if (t === "pdf"){
+        body.innerHTML = `<div class="vw-pdf"><div class="vw-load">Abrindo PDF…</div></div>`;
+        try { await mostrarPdf(c, body.querySelector(".vw-pdf"), () => d.open && d.dataset.atual === atual.id); }
+        catch(e){ body.innerHTML = `<iframe class="vw-frame" src="${c.url}#view=FitH" title="${esc(c.nome)}"></iframe><p class="vw-hint">Se o PDF não aparecer neste aparelho, use <b>Baixar</b> ou <b>Abrir no Drive</b>.</p>`; }
+      }
+      else if (t === "img") body.innerHTML = `<div class="vw-img"><img src="${c.url}" alt="${esc(c.nome)}"></div>`;
+      else if (t === "txt") body.innerHTML = `<pre class="vw-txt">${esc(await c.blob.text())}</pre>`;
+      else body.innerHTML = `<div class="vw-load">Esse tipo de arquivo não tem pré-visualização. Use <b>Baixar</b> ou <b>Abrir no Drive</b>.</div>`;
+    } catch(err){ body.innerHTML = `<div class="vw-load">Não foi possível carregar o arquivo${err.message === "rede" ? " — sem conexão" : ""}. Tente <b>Abrir no Drive</b>.</div>`; }
+  };
+  if (!d.open) d.showModal();
+  pintar(a);
+}
 function abrirAnexo(a){ window.open(driveUrl(a.id), "_blank", "noopener"); }
 async function baixarAnexo(a){
   if (mode !== "app" || !TOK){ abrirAnexo(a); return; }
   toast("Baixando " + a.nome + "…");
-  try { const r = await api("baixarAnexo", TOK, a.id); const bin = atob(r.b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); await saveFile(r.nome || a.nome, new Blob([u], {type: r.mime || a.mime}), r.mime || a.mime); }
+  try { const c = await buscarAnexo(a); await saveFile(c.nome, c.blob, c.mime); }
   catch(e){ toast("Não deu para baixar — abrindo no Drive"); abrirAnexo(a); }
 }
 function anxChips(f, soTipo){
   const l = (f.anexos || []).filter(a => !soTipo || a.tipo === soTipo);
   if (!l.length) return soTipo ? "" : `<span class="muted small">—</span>`;
-  return `<span class="anx-chips">${l.map(a => `<button type="button" class="anx-chip" data-anx-open="${f.id}|${a.id}" title="Abrir ${esc(a.nome)}">${I.clip}${ANX_CURTO[a.tipo]}</button>`).join("")}</span>`;
+  return `<span class="anx-chips">${l.map(a => `<button type="button" class="anx-chip" data-anx-open="${f.id}|${a.id}" title="Ver ${esc(a.nome)}">${I.clip}${ANX_CURTO[a.tipo]}</button>`).join("")}</span>`;
 }
 
 /* ================= backup ================= */
@@ -1206,7 +1297,7 @@ function makeDemo(){
 
 /* ================= eventos ================= */
 document.addEventListener("click", e => {
-  const ao = e.target.closest("[data-anx-open]"); if (ao){ e.stopPropagation(); const [fid, aid] = ao.dataset.anxOpen.split("|"); const f = D().fats[fid]; const a = f && (f.anexos || []).find(x => x.id === aid); if (a) abrirAnexo(a); return; }
+  const ao = e.target.closest("[data-anx-open]"); if (ao){ e.stopPropagation(); const [fid, aid] = ao.dataset.anxOpen.split("|"); const f = D().fats[fid]; const a = f && (f.anexos || []).find(x => x.id === aid); if (a) verAnexo(a, f); return; }
   const vb = e.target.closest("[data-view]"); if (vb){ view = vb.dataset.view; q = ""; render(); window.scrollTo(0, 0); return; }
   const tb = e.target.closest("[data-tipo]"); if (tb){ fTipo = tb.dataset.tipo; render(); return; }
   const rf = e.target.closest("[data-rf]"); if (rf){ rFiltro = rf.dataset.rf; render(); return; }
